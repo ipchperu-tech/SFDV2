@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta de Satisfacción - IPCH</title>
+    
+    <!-- Logo y Favicon -->
+    <link rel="icon" href="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" sizes="any">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Hoja de Estilos Unificada -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Estrellas interactivas */
+        .star {
+            font-size: 3rem;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .star:hover,
+        .star.hovered {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+        
+        .star.selected {
+            color: #fbbf24;
+        }
+        
+        /* Animación de carga */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #c80000;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Contenedor de contenido oculto por defecto */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="h-full">
+    
+    <!-- Contenedor Principal -->
+    <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        
+        <!-- Logo y Título -->
+        <div class="sm:mx-auto sm:w-full sm:max-w-md">
+            <img class="mx-auto h-20 w-auto" 
+                 src="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" 
+                 alt="Logo IPCH"
+                 onerror="this.onerror=null; this.src='https://placehold.co/80x80/fee2e2/c80000?text=IPCH';">
+            <h1 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+                Encuesta de Satisfacción
+            </h1>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Instituto Peruano Chino
+            </p>
+        </div>
+
+        <!-- Contenedor del Formulario -->
+        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+            <div class="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
+                
+                <!-- ESTADO: Validando Ticket -->
+                <div id="loading-state" class="text-center">
+                    <div class="spinner mx-auto mb-4"></div>
+                    <p class="text-gray-600">Validando enlace...</p>
+                </div>
+                
+                <!-- ESTADO: Ticket Inválido/Expirado -->
+                <div id="invalid-state" class="hidden">
+                    <div class="rounded-md bg-red-50 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Enlace inválido o expirado</h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <p id="invalid-message">Este enlace de encuesta no es válido o ya ha expirado. Por favor, solicita un nuevo enlace a tu docente.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500">¿Tienes alguna pregunta?</p>
+                        <p class="text-sm text-gray-500">Contacta a: <a href="mailto:calidad@ipch.net.pe" class="text-red-600 hover:text-red-800">calidad@ipch.net.pe</a></p>
+                    </div>
+                </div>
+                
+                <!-- ESTADO: Formulario de Encuesta -->
+                <div id="form-state" class="hidden">
+                    
+                    <!-- ✅ MEJORADO: Información simple sin fondos azules -->
+                    <div class="border-l-4 border-gray-300 pl-4 mb-6">
+                        <div class="space-y-1 text-sm">
+                            <div class="flex items-start">
+                                <span class="text-gray-600 font-medium mr-2">Evaluando a:</span>
+                                <span class="text-gray-900 font-semibold" id="info-docente">Cargando...</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-gray-600 mr-2">Aula:</span>
+                                <span class="text-gray-900" id="info-aula">Cargando...</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-gray-600 mr-2">Sesión:</span>
+                                <span class="text-gray-900" id="info-sesion">Cargando...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario -->
+                    <form id="encuesta-form" class="space-y-6">
+                        
+                        <!-- ✅ MEJORADO: Sección de identificación siempre visible -->
+                        <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                            <h3 class="text-base font-semibold text-gray-900 mb-4">
+                                Identificación (Opcional)
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label for="alumno-nombre" class="block text-sm font-medium text-gray-700 mb-1">
+                                            Nombre
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="alumno-nombre" 
+                                            placeholder="Tu nombre"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="alumno-apellido" class="block text-sm font-medium text-gray-700 mb-1">
+                                            Apellido
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="alumno-apellido" 
+                                            placeholder="Tu apellido"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="alumno-dni" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Documento de Identidad:
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="alumno-dni" 
+                                        placeholder="Ej: 12345678"
+                                        maxlength="12"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"><br>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        Esta encuesta es <span class="text-gray-900">anónima</span>. Si deseas, puedes identificarte y el solo será visible para el Área Administrativa. 
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pregunta 1: Calificación con Estrellas -->
+                        <div class="border-t border-gray-200 pt-6">
+                            <label class="block text-base font-medium text-gray-900 mb-4">
+                                1. ¿Cómo calificarías tu experiencia en la clase de hoy?
+                            </label>
+                            <div class="flex justify-center items-center gap-2 py-4">
+                                <span class="star" data-rating="1">★</span>
+                                <span class="star" data-rating="2">★</span>
+                                <span class="star" data-rating="3">★</span>
+                                <span class="star" data-rating="4">★</span>
+                                <span class="star" data-rating="5">★</span>
+                            </div>
+                            <p class="text-center text-sm text-gray-500 mt-2" id="rating-text">Selecciona una calificación</p>
+                            <input type="hidden" id="calificacion-input" name="calificacion" required>
+                        </div>
+                        
+                        <!-- Pregunta 2: Comentario (Opcional) -->
+                        <div>
+                            <label for="comentario" class="block text-base font-medium text-gray-900 mb-2">
+                                2. ¿Tienes algún comentario adicional? (Opcional)
+                            </label>
+                            <textarea 
+                                id="comentario" 
+                                name="comentario" 
+                                rows="4" 
+                                placeholder="Comparte tu experiencia, sugerencias o cualquier comentario que desees..."
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"></textarea>
+                        </div>
+                        
+                        <!-- Mensaje de Error del Formulario -->
+                        <div id="form-error" class="hidden rounded-md bg-red-50 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800" id="form-error-text"></h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón de Envío -->
+                        <div>
+                            <button 
+                                type="submit" 
+                                id="submit-button"
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Enviar Encuesta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- ESTADO: Encuesta Enviada con Éxito -->
+                <div id="success-state" class="hidden">
+                    <div class="text-center">
+                        <!-- Checkmark animado -->
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                            <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Gracias por tu opinión!</h2>
+                        <p class="text-gray-600 mb-6">Tu encuesta ha sido enviada exitosamente.</p>
+                        
+                        <!-- Div condicional para Google My Business (si 5 estrellas) -->
+                        <div id="google-review-section" class="hidden">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                                <h3 class="text-lg font-semibold text-blue-900 mb-3">
+                                    ¡Nos alegra que hayas tenido una excelente experiencia!
+                                </h3>
+                                <p class="text-blue-800 mb-4">
+                                    ¿Te gustaría compartir tu opinión públicamente en Google? Esto nos ayuda mucho a que más personas conozcan nuestro instituto.
+                                </p>
+                                <a 
+                                    href="https://g.page/r/CRrmMa79JGgjEBM/review" 
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                    <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
+                                    </svg>
+                                    Dejar Reseña en Google
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <p class="text-sm text-gray-500">Puedes cerrar esta ventana.</p>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                © 2025 Instituto Peruano Chino - Todos los derechos reservados
+            </p>
+        </div>
+    </div>
+
+    <!-- JavaScript del Formulario -->
+    <script type="module" src="js/encuesta.js"></script>
+</body>
+</html>

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFD Admin - Dashboard</title>
+    <link rel="icon" href="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" sizes="any">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Hoja de Estilos Personalizada -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome (para iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    
+    <!-- Contenedor principal -->
+    <div class="flex h-screen bg-gray-100">
+        
+        <!-- Barra Lateral -->
+        <aside class="w-64 bg-white shadow-md hidden sm:block">
+            <div class="p-6 flex items-center justify-center">
+                <img src="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" alt="Logo IPCH" class="h-20 w-auto">
+            </div>
+            
+            <nav class="mt-6">
+                <a href="#aulas" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-red-50 hover:text-red-700">
+                    <i class="fas fa-school w-6 text-center"></i>
+                    <span class="ml-3">Aulas</span>
+                </a>
+                <a href="#docentes" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-red-50 hover:text-red-700">
+                    <i class="fas fa-chalkboard-teacher w-6 text-center"></i>
+                    <span class="ml-3">Docentes</span>
+                </a>
+                <a href="#colaboradores" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-red-50 hover:text-red-700">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span class="ml-3">Colaboradores</span>
+                </a>
+                
+                <hr class="my-4 border-t border-gray-200">
+                
+                <a href="#novedades" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-red-50 hover:text-red-700">
+                    <i class="fas fa-exclamation-triangle w-6 text-center"></i>
+                    <span class="ml-3">Novedades</span>
+                </a>
+                <a href="#generar-encuesta" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-red-50 hover:text-red-700">
+                    <i class="fas fa-link w-6 text-center"></i>
+                    <span class="ml-3">Generar Encuesta</span>
+                </a>
+                <a href="#evaluacion-calidad" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-red-50 hover:text-red-700">
+                    <i class="fas fa-star w-6 text-center"></i>
+                    <span class="ml-3">Evaluación Calidad</span>
+                </a>
+            </nav>
+            
+<div class="absolute bottom-0 w-64 p-6">
+    <!-- Fecha y Hora de Perú -->
+    <div class="text-xs text-gray-500 mb-2" id="peru-datetime">
+        <div id="peru-date">Cargando fecha...</div>
+        <div id="peru-time" class="font-mono">Cargando hora...</div>
+    </div>
+    
+    <!-- Nombre del Usuario -->
+    <div class="text-sm font-medium text-gray-800" id="user-name-display">Cargando...</div>
+    <div class="text-xs text-gray-500" id="user-role-display"></div>
+    
+    <button id="logout-button" class="btn btn-secondary w-full mt-3">
+        Cerrar Sesión
+    </button>
+</div>
+        </aside>
+        
+        <!-- Contenido Principal -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Área de Contenido (scrollable) -->
+            <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                
+                <!-- SECCIÓN: AULAS -->
+                <section id="aulas-section" class="app-section hidden">
+                    
+                    <!-- Botón para mostrar formulario -->
+                    <div class="flex justify-end mb-4">
+                        <button id="show-aula-form-button" class="btn btn-primary">
+                            <i class="fas fa-plus mr-2"></i> Registrar Nueva Aula
+                        </button>
+                    </div>
+
+                    <!-- Formulario de Nueva Aula (Oculto por defecto) -->
+                    <div id="new-aula-form-container" class="card p-6 md:p-8 mb-6 hidden">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Datos de la Nueva Aula</h2>
+                        <form id="new-aula-form">
+                            <!-- Fila 1 -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div>
+                                    <label for="codigo_aula" class="form-label">Código de Aula</label>
+                                    <input type="text" id="codigo_aula" name="codigo_aula" placeholder="Ej: CH-GRL-01">
+                                </div>
+                                <div>
+                                    <label for="programa_select" class="form-label">Programa</label>
+                                    <select id="programa_select" name="programa_select"></select>
+                                </div>
+                                <div>
+                                    <label for="ciclo_actual_select" class="form-label">Ciclo Actual</label>
+                                    <select id="ciclo_actual_select" name="ciclo_actual_select"></select>
+                                </div>
+                            </div>
+                            <!-- Fila 2 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="id_docente_asignado" class="form-label">Docente Asignado</label>
+                                    <select id="id_docente_asignado" name="id_docente_asignado"></select>
+                                </div>
+                                <div>
+                                    <label for="total_sesiones" class="form-label">Total Sesiones</label>
+                                    <input type="number" id="total_sesiones" name="total_sesiones" readonly>
+                                </div>
+                            </div>
+                            <!-- Fila 3 - Frecuencia -->
+                            <div class="mb-6">
+                                <label class="form-label">Frecuencia</label>
+                                <div id="frecuencia_container" class="flex flex-wrap gap-4 mt-2">
+                                    <div class="text-sm text-gray-500">-- Elige un programa para ver frecuencias --</div>
+                                </div>
+                            </div>
+                            <!-- Fila 4 - Fechas y Horas -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                                <div>
+                                    <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                                    <input type="date" id="fecha_inicio" name="fecha_inicio">
+                                </div>
+                                <div>
+                                    <label for="horario_inicio" class="form-label">Hora Inicio</label>
+                                    <input type="time" id="horario_inicio" name="horario_inicio">
+                                </div>
+                                <div>
+                                    <label for="horario_fin" class="form-label">Hora Fin</label>
+                                    <input type="time" id="horario_fin" name="horario_fin">
+                                </div>
+                            </div>
+                            
+                            <!-- Botones y Error -->
+                            <div class="flex items-center justify-end gap-4 mt-8">
+                                <p id="form-aula-error" class="text-sm text-red-600 mr-auto"></p>
+                                <button type="button" id="cancel-aula-form-button" class="btn btn-secondary">Cancelar</button>
+                                <button type="submit" id="save-aula-button" class="btn btn-primary">Guardar Aula</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Tabla de Aulas Registradas -->
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <div id="aulas-table-container" class="min-w-max">
+            <p class="p-6 text-center text-gray-500">Cargando aulas...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Aula -->
+                    <div id="edit-aula-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-semibold">Editar Aula</h3>
+                                <button type="button" class="btn-secondary text-gray-400 hover:text-gray-600 text-2xl leading-none px-3 py-1" onclick="document.getElementById('edit-aula-modal').classList.add('hidden')">&times;</button>
+                            </div>
+                            <form id="edit-aula-form">
+                                <input type="hidden" id="edit-aula-id">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="edit_aula_codigo" class="form-label">Código de Aula</label>
+                                        <input type="text" id="edit_aula_codigo" name="edit_aula_codigo" required>
+                                    </div>
+                                    <div>
+                                        <label for="edit_aula_docente" class="form-label">Docente Asignado</label>
+                                        <select id="edit_aula_docente" name="edit_aula_docente" required></select>
+                                    </div>
+                                    <div>
+                                        <label for="edit_aula_horario_inicio" class="form-label">Hora Inicio</label>
+                                        <input type="time" id="edit_aula_horario_inicio" name="edit_aula_horario_inicio" required>
+                                    </div>
+                                    <div>
+                                        <label for="edit_aula_horario_fin" class="form-label">Hora Fin</label>
+                                        <input type="time" id="edit_aula_horario_fin" name="edit_aula_horario_fin" required>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-end gap-4 mt-8">
+                                    <p id="edit-aula-error" class="text-sm text-red-600 mr-auto"></p>
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-aula-modal').classList.add('hidden')">Cancelar</button>
+                                    <button type="submit" id="save-edit-aula-button" class="btn btn-primary">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- SECCIÓN: DOCENTES -->
+                <section id="docentes-section" class="app-section hidden">
+                    
+                    <div class="flex justify-end mb-4">
+                        <button id="show-docente-form-button" class="btn btn-primary">
+                            <i class="fas fa-plus mr-2"></i> Registrar Nuevo Docente
+                        </button>
+                    </div>
+
+                    <div id="new-docente-form-container" class="card p-6 md:p-8 mb-6 hidden">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Datos del Nuevo Docente</h2>
+                        <form id="new-docente-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="docente_nombre_completo" class="form-label">Nombre Completo</label>
+                                    <input type="text" id="docente_nombre_completo" name="docente_nombre_completo">
+                                </div>
+                                <div>
+                                    <label for="docente_email" class="form-label">Email (Contacto)</label>
+                                    <input type="email" id="docente_email" name="docente_email">
+                                </div>
+                            </div>
+                            
+                            <!-- (MODIFICADO) Lógica para DNI y crear login de docente -->
+                            <div class="p-4 bg-gray-50 rounded-md border">
+                                <div class_mb-4>
+                                    <label for="docente_dni" class="form-label">DNI (Obligatorio para login)</label>
+                                    <input type="text" id="docente_dni" name="docente_dni" maxlength="8">
+                                </div>
+
+                                <label class="flex items-center space-x-3 mt-4">
+                                    <input type="checkbox" id="docente_crear_login" class="h-5 w-5 rounded text-red-600 focus:ring-red-500">
+                                    <span class="text-sm font-medium text-gray-700">Crear cuenta de acceso (login) para este docente</span>
+                                </label>
+                                <p class="text-xs text-gray-500 mt-1">El DNI se usará como usuario. El email de contacto se vinculará a la cuenta.</p>
+                                
+                                <div id="docente_password_fields" class="hidden mt-4 space-y-4">
+                                    <div>
+                                        <label for="docente_password" class="form-label">Contraseña (mín. 6 caracteres)</label>
+                                        <input type="password" id="docente_password" name="docente_password">
+                                    </div>
+                                    <div>
+                                        <label for="docente_confirm_password" class="form-label">Confirmar Contraseña</label>
+                                        <input type="password" id="docente_confirm_password" name="docente_confirm_password">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-end gap-4 mt-8">
+                                <p id="form-docente-error" class="text-sm text-red-600 mr-auto"></p>
+                                <button type="button" id="cancel-docente-form-button" class="btn btn-secondary">Cancelar</button>
+                                <button type="submit" id="save-docente-button" class="btn btn-primary">Guardar Docente</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card overflow-hidden">
+                        <div id="docentes-table-container">
+                            <p class="p-6 text-center text-gray-500">Cargando docentes...</p>
+                        </div>
+                    </div>
+
+                    <!-- Modal para Editar Docente -->
+                    <div id="edit-docente-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                            <h3 class="text-xl font-semibold mb-4">Editar Docente</h3>
+                            <form id="edit-docente-form">
+                                <input type="hidden" id="edit-docente-id">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="edit_docente_nombre" class="form-label">Nombre Completo</label>
+                                        <input type="text" id="edit_docente_nombre" name="edit_docente_nombre">
+                                    </div>
+                                    <div>
+                                        <label for="edit_docente_email" class="form-label">Email (Contacto)</label>
+                                        <input type="email" id="edit_docente_email" name="edit_docente_email">
+                                    </div>
+                                    <div>
+                                        <label for="edit_docente_dni" class="form-label">DNI</label>
+                                        <input type="text" id="edit_docente_dni" name="edit_docente_dni" maxlength="8">
+                                    </div>
+                                    <p class="text-sm text-gray-500">El email de login no se puede cambiar desde aquí.</p>
+                                </div>
+                                <div class="flex items-center justify-end gap-4 mt-8">
+                                    <p id="edit-docente-error" class="text-sm text-red-600 mr-auto"></p>
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-docente-modal').classList.add('hidden')">Cancelar</button>
+                                    <button type="submit" id="save-edit-docente-button" class="btn btn-primary">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- SECCIÓN: COLABORADORES -->
+                <section id="colaboradores-section" class="app-section hidden">
+                    
+                    <div class="flex justify-end mb-4">
+                        <button id="show-colaborador-form-button" class="btn btn-primary">
+                            <i class="fas fa-plus mr-2"></i> Registrar Nuevo Colaborador
+                        </button>
+                    </div>
+
+                    <div id="new-colaborador-form-container" class="card p-6 md:p-8 mb-6 hidden">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Datos del Nuevo Colaborador</h2>
+                        <form id="new-colaborador-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="colaborador_nombre" class="form-label">Nombre Completo</label>
+                                    <input type="text" id="colaborador_nombre" name="colaborador_nombre">
+                                </div>
+                                <div>
+                                    <label for="colaborador_email" class="form-label">Email (Será su usuario)</label>
+                                    <input type="email" id="colaborador_email" name="colaborador_email">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="colaborador_password" class="form-label">Contraseña (mín. 6 caracteres)</label>
+                                    <input type="password" id="colaborador_password" name="colaborador_password">
+                                </div>
+                                <div>
+                                    <label for="colaborador_rol" class="form-label">Rol de Acceso</label>
+                                    <select id="colaborador_rol" name="colaborador_rol">
+                                        <option value="admin">Administrador</option>
+                                        <option value="calidad">Calidad</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-end gap-4 mt-8">
+                                <p id="form-colaborador-error" class="text-sm text-red-600 mr-auto"></p>
+                                <button type="button" id="cancel-colaborador-form-button" class="btn btn-secondary">Cancelar</button>
+                                <button type="submit" id="save-colaborador-button" class="btn btn-primary">Crear Colaborador</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card overflow-hidden">
+                        <div id="colaboradores-table-container">
+                            <p class="p-6 text-center text-gray-500">Cargando colaboradores...</p>
+                        </div>
+                    </div>
+
+                    <!-- Modal para Editar Colaborador -->
+                    <div id="edit-colaborador-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                            <h3 class="text-xl font-semibold mb-4">Editar Colaborador</h3>
+                            <form id="edit-colaborador-form">
+                                <input type="hidden" id="edit-colaborador-id">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="edit_colaborador_nombre" class="form-label">Nombre Completo</label>
+                                        <input type="text" id="edit_colaborador_nombre" name="edit_colaborador_nombre">
+                                    </div>
+                                    <div>
+                                        <label for="edit_colaborador_email" class="form-label">Email (No editable)</label>
+                                        <input type="email" id="edit_colaborador_email" name="edit_colaborador_email" readonly>
+                                    </div>
+                                    <div>
+                                        <label for="edit_colaborador_rol" class="form-label">Rol de Acceso</label>
+                                        <select id="edit_colaborador_rol" name="edit_colaborador_rol">
+                                            <option value="admin">Administrador</option>
+                                            <option value="calidad">Calidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-end gap-4 mt-8">
+                                    <p id="edit-colaborador-error" class="text-sm text-red-600 mr-auto"></p>
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-colaborador-modal').classList.add('hidden')">Cancelar</button>
+                                    <button type="submit" id="save-edit-colaborador-button" class="btn btn-primary">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- SECCIÓN: NOVEDADES (Etapa 4) -->
+                <section id="novedades-section" class="app-section hidden">
+                    
+                    <div class="flex justify-end mb-4">
+                        <button id="show-novedad-form-button" class="btn btn-primary">
+                            <i class="fas fa-plus mr-2"></i> Registrar Novedad
+                        </button>
+                    </div>
+
+                    <div id="new-novedad-form-container" class="card p-6 md:p-8 mb-6 hidden">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Registrar Novedad de Clase</h2>
+                        <form id="new-novedad-form">
+                            <!-- Paso 1: Tipo de Novedad -->
+                            <div>
+                                <label class="form-label">1. Tipo de Novedad</label>
+                                <fieldset class="flex flex-wrap gap-4 mt-2">
+                                    <div>
+                                        <input type="radio" name="tipo_novedad_radio" id="tipo_reemplazo" value="reemplazo" class="freq-radio-input">
+                                        <label for="tipo_reemplazo" class="freq-radio-label">Reemplazo de Docente</label>
+                                    </div>
+                                    <div>
+                                        <input type="radio" name="tipo_novedad_radio" id="tipo_reprogramacion" value="reprogramacion" class="freq-radio-input">
+                                        <label for="tipo_reprogramacion" class="freq-radio-label">Reprogramación de Clase</label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            
+                            <!-- Paso 2: Aula y Sesión -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div>
+                                    <label for="novedad_aula_select" class="form-label">2. Aula Afectada</label>
+                                    <select id="novedad_aula_select" name="novedad_aula_select"></select>
+                                </div>
+                                <div>
+                                    <label for="novedad_sesion_select" class="form-label">3. Sesión Afectada</label>
+                                    <select id="novedad_sesion_select" name="novedad_sesion_select"></select>
+                                </div>
+                            </div>
+
+                            <!-- Paso 3: Campos Dinámicos -->
+                            <div id="novedad_reemplazo_container" class="mt-6 hidden">
+                                <label for="novedad_docente_reemplazo" class="form-label">4. Docente de Reemplazo</label>
+                                <select id="novedad_docente_reemplazo" name="novedad_docente_reemplazo"></select>
+                            </div>
+                            
+                            <div id="novedad_reprogramar_container" class="mt-6 hidden">
+                                <label for="novedad_nueva_fecha" class="form-label">4. Nueva Fecha para la Sesión</label>
+                                <input type="date" id="novedad_nueva_fecha" name="novedad_nueva_fecha">
+                            </div>
+
+                            <!-- Paso 4: Motivo -->
+                            <div class="mt-6">
+                                <label for="novedad_motivo" class="form-label">5. Motivo de la Novedad</label>
+                                <textarea id="novedad_motivo" name="novedad_motivo" rows="3" placeholder="Ej: El docente se reportó enfermo..."></textarea>
+                            </div>
+                            
+                            <!-- Botones y Error -->
+                            <div class="flex items-center justify-end gap-4 mt-8">
+                                <p id="form-novedad-error" class="text-sm text-red-600 mr-auto"></p>
+                                <button type="button" id="cancel-novedad-form-button" class="btn btn-secondary">Cancelar</button>
+                                <button type="submit" id="save-novedad-button" class="btn btn-primary">Guardar Novedad</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Historial de Novedades</h3>
+                    <div class="card overflow-hidden">
+                        <div id="novedades-table-container">
+                            <p class="p-6 text-center text-gray-500">Cargando novedades...</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- SECCIÓN: GENERAR ENCUESTA (✅ REDISEÑADA) -->
+                <section id="generar-encuesta-section" class="app-section hidden">
+                    <!-- Header con fecha actual -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">Clases Programadas para Hoy</h2>
+                            <p class="text-sm text-gray-500 mt-1" id="generar-encuesta-fecha"></p>
+                        </div>
+                        <button id="refresh-classes-button" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt mr-2"></i> Actualizar
+                        </button>
+                    </div>
+
+                    <!-- Tabla de clases -->
+                    <div class="card overflow-hidden">
+                        <div id="scheduled-classes-table-container">
+                            <p class="p-6 text-center text-gray-500">Cargando clases programadas...</p>
+                        </div>
+                    </div>
+
+                    <!-- Modal para mostrar enlace generado -->
+                    <div id="enlace-modal" class="modal-overlay hidden">
+                        <div class="modal-content max-w-2xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-semibold text-gray-800">Enlace de Encuesta Generado</h3>
+                                <button id="close-enlace-modal" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Info de la clase -->
+                            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Código de Aula</p>
+                                        <p class="text-sm font-medium text-gray-900" id="modal-aula-codigo"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Docente</p>
+                                        <p class="text-sm font-medium text-gray-900" id="modal-docente-nombre"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Sesión</p>
+                                        <p class="text-sm font-medium text-gray-900" id="modal-sesion-num"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Horario</p>
+                                        <p class="text-sm font-medium text-gray-900" id="modal-horario"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enlace -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Enlace Único de Encuesta
+                                    <span class="text-gray-500 font-normal">(Expira 4 horas después del fin de la clase)</span>
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="modal-link-input" class="flex-1 font-mono text-sm" readonly>
+                                    <button id="modal-copy-button" class="btn btn-primary">
+                                        <i class="fas fa-copy mr-2"></i> Copiar
+                                    </button>
+                                    <div id="modal-expiration-info"></div>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="flex justify-end gap-3 mt-6">
+                                <button id="modal-close-button" class="btn btn-secondary">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                                <!-- SECCIÓN: EVALUACIÓN CALIDAD -->
+                <section id="evaluacion-calidad-section" class="app-section hidden">
+                    <div class="card p-6 md:p-8">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Formulario de Evaluación de Calidad</h2>
+                        <p class="text-gray-600">Este formulario será utilizado por el personal de Calidad para realizar evaluaciones internas a los docentes durante las clases.</p>
+                        <p class="text-gray-600 mt-4">(Pendiente de implementación)</p>
+                    </div>
+                </section>
+
+            </div> <!-- /fin .flex-1.overflow-y-auto -->
+            
+        </main> <!-- /fin .flex-1.flex.flex-col -->
+        
+    </div> <!-- /fin .flex.h-screen -->
+
+    <!-- ✅ NUEVO: Modal para Cerrar Aula (ENTREGA 3) -->
+    <div id="cerrar-aula-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-red-700">⚠️ Cerrar Aula</h3>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                    <p class="text-sm text-yellow-800">
+                        <strong>Advertencia:</strong> Esta acción moverá el aula a histórico y no se puede deshacer.
+                    </p>
+                </div>
+                
+                <div class="p-4 bg-gray-50 rounded-md">
+                    <p class="text-sm text-gray-700 mb-2">
+                        <strong>Aula:</strong> <span id="cerrar-aula-nombre" class="font-mono"></span>
+                    </p>
+                    <p class="text-sm text-gray-700">
+                        <strong>Sesiones totales:</strong> <span id="cerrar-aula-sesiones"></span>
+                    </p>
+                </div>
+                
+                <div>
+                    <label for="cerrar-aula-confirm-input" class="form-label">
+                        Para confirmar, escribe <strong class="text-red-600">CERRAR</strong> en el campo:
+                    </label>
+                    <input 
+                        type="text" 
+                        id="cerrar-aula-confirm-input" 
+                        class="uppercase"
+                        placeholder="Escribe CERRAR"
+                        autocomplete="off"
+                    >
+                </div>
+                
+                <input type="hidden" id="cerrar-aula-id-hidden">
+                
+                <p id="cerrar-aula-error" class="text-sm text-red-600"></p>
+            </div>
+            
+            <div class="flex items-center justify-end gap-4 mt-6">
+                <button type="button" id="cerrar-aula-cancel-button" class="btn btn-secondary">
+                    Cancelar
+                </button>
+                <button type="button" id="cerrar-aula-confirm-button" class="btn bg-red-600 text-white hover:bg-red-700" disabled>
+                    Cerrar Aula
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ NUEVO: Modal para Avanzar Ciclo (ENTREGA 3) -->
+    <div id="avanzar-ciclo-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-green-700">🔄 Avanzar al Siguiente Ciclo</h3>
+            </div>
+            
+            <form id="avanzar-ciclo-form">
+                <div class="space-y-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                        <p class="text-sm text-blue-800">
+                            <strong>Nota:</strong> El ciclo anterior se archivará automáticamente en el histórico. 
+                            Se generarán nuevas sesiones para el siguiente ciclo.
+                        </p>
+                    </div>
+                    
+                    <!-- Ciclo Nuevo (readonly) -->
+                    <div>
+                        <label for="avanzar-ciclo-nuevo" class="form-label">
+                            Ciclo Nuevo (Auto-calculado)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="avanzar-ciclo-nuevo" 
+                            readonly
+                            class="bg-gray-100 cursor-not-allowed"
+                        >
+                    </div>
+                    
+                    <!-- Grid de campos editables -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Docente -->
+                        <div class="md:col-span-2">
+                            <label for="avanzar-docente-select" class="form-label">
+                                Docente Asignado
+                            </label>
+                            <select id="avanzar-docente-select" required></select>
+                        </div>
+                        
+                        <!-- Fecha Inicio -->
+                        <div>
+                            <label for="avanzar-fecha-inicio" class="form-label">
+                                Fecha de Inicio
+                            </label>
+                            <input type="date" id="avanzar-fecha-inicio" required>
+                        </div>
+                        
+                        <!-- Fecha Fin (opcional, se calcula automáticamente) -->
+                        <div>
+                            <label for="avanzar-fecha-fin" class="form-label">
+                                Fecha de Fin <span class="text-xs text-gray-500">(se calcula automático)</span>
+                            </label>
+                            <input type="date" id="avanzar-fecha-fin" readonly class="bg-gray-100">
+                        </div>
+                        
+                        <!-- Horario Inicio -->
+                        <div>
+                            <label for="avanzar-horario-inicio" class="form-label">
+                                Hora de Inicio
+                            </label>
+                            <input type="time" id="avanzar-horario-inicio" required>
+                        </div>
+                        
+                        <!-- Horario Fin -->
+                        <div>
+                            <label for="avanzar-horario-fin" class="form-label">
+                                Hora de Fin
+                            </label>
+                            <input type="time" id="avanzar-horario-fin" required>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="avanzar-aula-id-hidden">
+                    
+                    <p id="avanzar-ciclo-error" class="text-sm text-red-600"></p>
+                </div>
+                
+                <div class="flex items-center justify-end gap-4 mt-6">
+                    <button type="button" id="avanzar-ciclo-cancel-button" class="btn btn-secondary">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="avanzar-ciclo-confirm-button" class="btn bg-green-600 text-white hover:bg-green-700">
+                        Avanzar al Ciclo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Módulo de Firebase (ESM) -->
+    <script type="module" src="js/admin-dashboard.js"></script>
+</body>
+</html>

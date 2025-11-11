@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFD - Iniciar Sesión</title>
+    
+    <!-- Logo y Favicon del SGI -->
+    <link rel="icon" href="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" sizes="any">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- (NUEVO) Hoja de Estilos Unificada -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+      /* Estilo para ocultar el body hasta que el JS decida si redirigir o no */
+      body { opacity: 0; transition: opacity 0.3s ease-in; }
+    </style>
+</head>
+<body class="h-full">
+  <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <!-- Logo -->
+      <img class="mx-auto h-20 w-auto" src="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" alt="Logo SFD" onerror="this.onerror=null; this.src='https://placehold.co/80x80/fee2e2/c80000?text=SFD';">
+      <h2 class="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
+        Sistema de Feedback Docente
+      </h2>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div class="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
+        <form class="space-y-6" id="login-form">
+          <div>
+            <!-- (CORREGIDO) Etiqueta cambiada a Email o DNI -->
+            <label for="login-input" class="block text-sm font-medium text-gray-700">Email o DNI</label>
+            <div class="mt-1">
+              <input id="login-input" name="login-input" type="text" autocomplete="email" required>
+            </div>
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+            <div class="mt-1">
+              <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+          </div>
+
+          <!-- Mensaje de Error -->
+          <div id="error-message" class="hidden rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800" id="error-message-text"></h3>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button type="submit" id="login-button" class="btn btn-primary w-full">
+              Ingresar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/login-controller.js"></script>
+</body>
+</html>

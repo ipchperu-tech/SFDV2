@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFD - Dashboard Docente</title>
+    
+    <!-- Logo y Favicon -->
+    <link rel="icon" href="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" sizes="any">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Hoja de Estilos Unificada -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="h-full loading">
+  
+  <!-- HEADER -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo y Título -->
+        <div class="flex items-center">
+          <img class="h-10 w-auto" src="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" alt="Logo IPCH">
+          <h1 class="ml-4 text-xl font-semibold text-gray-900">Dashboard Docente</h1>
+        </div>
+        
+        <!-- Usuario y Logout -->
+<div class="flex items-center space-x-4">
+  <div class="text-right">
+    <div class="text-sm font-medium text-gray-800" id="user-name-display">Cargando...</div>
+    <div class="text-xs text-gray-500" id="user-email-display">Cargando...</div>
+  </div>
+  <button id="logout-button" class="btn btn-secondary btn-sm">
+    Cerrar Sesión
+  </button>
+</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- MÉTRICAS PRINCIPALES -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      
+      <!-- Card: Promedio Global -->
+      <div class="card text-center">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Promedio Global</h3>
+        <div class="text-4xl font-bold text-gray-900 mb-2" id="promedio-global">
+          <span class="loading-text">...</span>
+        </div>
+        <div class="flex items-center justify-center text-yellow-500">
+          <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+          <span class="text-sm font-medium text-gray-700 ml-1">Estrellas</span>
+        </div>
+      </div>
+
+      <!-- Card: Total Encuestas -->
+      <div class="card text-center">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Total de Encuestas</h3>
+        <div class="text-4xl font-bold text-gray-900 mb-2" id="total-encuestas">
+          <span class="loading-text">...</span>
+        </div>
+        <p class="text-sm text-gray-600">Respuestas recibidas</p>
+      </div>
+
+      <!-- Card: Aulas Activas -->
+      <div class="card text-center">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Aulas con Feedback</h3>
+        <div class="text-4xl font-bold text-gray-900 mb-2" id="total-aulas">
+          <span class="loading-text">...</span>
+        </div>
+        <p class="text-sm text-gray-600">Aulas evaluadas</p>
+      </div>
+    </div>
+
+    <!-- ESTADÍSTICAS POR AULA -->
+<!-- ESTADÍSTICAS POR AULA -->
+<div class="card mb-8">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-900">📊 Estadísticas por Aula</h2>
+    
+    <!-- Filtros -->
+    <div class="flex items-center gap-3">
+      <select id="filtro-aula" class="text-sm rounded-md border-gray-300">
+        <option value="">Todas las aulas</option>
+      </select>
+    </div>
+  </div>
+  
+  <div id="aulas-table-container" class="overflow-x-auto">
+        <p class="text-center text-gray-500 py-8">Cargando estadísticas...</p>
+      </div>
+    </div>
+
+    <!-- COMENTARIOS RECIENTES -->
+<!-- COMENTARIOS RECIENTES -->
+<div class="card">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-900">💬 Comentarios Recientes</h2>
+    
+    <!-- Filtros -->
+    <div class="flex items-center gap-3">
+      <input 
+        type="date" 
+        id="filtro-fecha-comentarios" 
+        class="text-sm rounded-md border-gray-300"
+        placeholder="Filtrar por fecha">
+      <select id="filtro-aula-comentarios" class="text-sm rounded-md border-gray-300">
+        <option value="">Todas las aulas</option>
+      </select>
+      <button id="reset-filtros-comentarios" class="btn btn-secondary btn-sm">
+        Limpiar
+      </button>
+    </div>
+  </div>
+  
+  <div id="comentarios-container" class="space-y-4">
+      </div>
+  
+  <!-- Paginación -->
+  <div id="paginacion-container" class="hidden mt-6 flex items-center justify-between border-t pt-4">
+    <div class="text-sm text-gray-600">
+      Mostrando <span id="comentarios-inicio">1</span>-<span id="comentarios-fin">20</span> 
+      de <span id="comentarios-total">0</span> comentarios
+    </div>
+    
+    <div class="flex gap-2">
+      <button id="pag-anterior" class="btn btn-secondary btn-sm" disabled>
+        ← Anterior
+      </button>
+      <span id="pagina-actual" class="px-3 py-1 text-sm font-medium text-gray-700">
+        Página 1
+      </span>
+      <button id="pag-siguiente" class="btn btn-secondary btn-sm">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module" src="js/dashboard-docente.js"></script>
+</body>
+</html>
