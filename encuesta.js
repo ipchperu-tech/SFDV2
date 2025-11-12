@@ -243,15 +243,21 @@ async function handleFormSubmit(e) {
         // ✅ Marcar como votado en LocalStorage
         marcarComoVotado(ticketId);
 
-        // 4. Mostrar estado de éxito
-        console.log("Encuesta enviada con éxito.");
-        UIElements.formState.classList.add('hidden');
-        UIElements.successState.classList.remove('hidden');
+// 4. Mostrar estado de éxito
+console.log("Encuesta enviada con éxito.");
+UIElements.formState.classList.add('hidden');
+UIElements.successState.classList.remove('hidden');
 
-        // 5. Mostrar enlace de Google si la calificación fue 5
-        if (calificacionSeleccionada === 5) {
-            UIElements.googleReviewSection.classList.remove('hidden');
-        }
+// 5. Mostrar enlace de Google si la calificación fue 5
+if (calificacionSeleccionada === 5) {
+    UIElements.googleReviewSection.classList.remove('hidden');
+}
+
+// ✅ NUEVO: Redirección automática después de 3 segundos
+setTimeout(() => {
+    console.log('🔄 Redirigiendo a página principal...');
+    window.location.href = 'https://institutoperuanochino.pe/';
+}, 3000); // 3 segundos para que lean el mensaje de agradecimiento
 
     } catch (error) {
         console.error("Error al enviar la encuesta:", error);

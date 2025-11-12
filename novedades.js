@@ -1,11 +1,12 @@
 /**
  * js/modulos/novedades.js
- * ✅ VERSIÓN 2.0: Actualiza timestamps completos en reprogramación
+ * ✅ VERSIÓN 3.0: Con paginación y filtros
  * 
  * MEJORAS:
- * - Reprogramación actualiza: fecha, inicio, fin
- * - Usa combinarFechaHorario() de fecha-utils.js
- * - Mantiene lógica de cascada existente
+ * - Paginación de 20 registros por página
+ * - Filtros por fecha y aula
+ * - Ordenamiento por fecha descendente
+ * - Mejor experiencia de usuario
  */
 
 // --- Importaciones de Núcleo ---
@@ -20,17 +21,19 @@ import {
     writeBatch,
     updateDoc,
     Timestamp,
-    where
+    where,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ✅ Importar utilidades de fecha
 import {
     combinarFechaHorario,
     crearFechaPeru,
-    getAhoraPeru
+    getAhoraPeru,
+    formatFechaPeru
 } from '../utils/fecha-utils.js';
 
-// ✅ NUEVO: Importar configuración centralizada de feriados
+// ✅ Importar configuración centralizada de feriados
 import { FERIADOS_ACTIVOS } from '../config/feriados.js';
 
 // --- Caché del Módulo ---
@@ -38,10 +41,14 @@ let aulaCache = new Map();
 let docenteCache = new Map();
 let sesionesCache = new Map();
 
-// ✅ Feriados (importados desde configuración centralizada)
-// Convertimos a formato toDateString para compatibilidad con la función existente
-const FERIADOS = FERIADOS_ACTIVOS.map(f => new Date(f + 'T00:00:00-05:00').toDateString());
+// ✅ Variables de paginación
+let todasLasNovedades = [];
+let novedadesFiltradas = [];
+let paginaActualNum = 1;
+const NOVEDADES_POR_PAGINA = 20;
 
+// ✅ Feriados (importados desde configuración centralizada)
+const FERIADOS = FERIADOS_ACTIVOS.map(f => new Date(f + 'T00:00:00-05:00').toDateString());
 
 // --- Mapeo de frecuencias ---
 const FRECUENCIA_A_DIAS = {
@@ -85,13 +92,18 @@ let aulaSelect, sesionSelect, tipoNovedadRadios;
 let reemplazoContainer, reprogramarContainer, docenteReemplazoSelect;
 let nuevaFechaInput, motivoInput;
 
+// ✅ NUEVO: Elementos de paginación y filtros
+let paginacionContainer, filtroFecha, filtroAula, resetFiltrosBtn;
+let novedadesInicio, novedadesFin, novedadesTotal, paginaActual;
+let pagAnterior, pagSiguiente;
+
 /**
  * Función principal de inicialización
  */
 export function initNovedades(user, role) {
-    console.log("✅ Módulo de Novedades (v2.0) inicializado.");
+    console.log("✅ Módulo de Novedades (v3.0 - con paginación) inicializado.");
     
-    // Capturar elementos
+    // Capturar elementos del formulario
     form = document.getElementById('new-novedad-form');
     container = document.getElementById('new-novedad-form-container');
     buttonShow = document.getElementById('show-novedad-form-button');
@@ -111,7 +123,19 @@ export function initNovedades(user, role) {
     nuevaFechaInput = document.getElementById('novedad_nueva_fecha');
     motivoInput = document.getElementById('novedad_motivo');
 
-    // Configurar listeners
+    // ✅ NUEVO: Capturar elementos de paginación
+    paginacionContainer = document.getElementById('novedades-paginacion-container');
+    filtroFecha = document.getElementById('filtro-fecha-novedades');
+    filtroAula = document.getElementById('filtro-aula-novedades');
+    resetFiltrosBtn = document.getElementById('reset-filtros-novedades');
+    novedadesInicio = document.getElementById('novedades-inicio');
+    novedadesFin = document.getElementById('novedades-fin');
+    novedadesTotal = document.getElementById('novedades-total');
+    paginaActual = document.getElementById('pagina-actual-novedades');
+    pagAnterior = document.getElementById('pag-anterior-novedades');
+    pagSiguiente = document.getElementById('pag-siguiente-novedades');
+
+    // Configurar listeners del formulario
     buttonShow.addEventListener('click', () => toggleNovedadForm(true));
     buttonCancel.addEventListener('click', () => toggleNovedadForm(false));
     
@@ -121,6 +145,13 @@ export function initNovedades(user, role) {
     
     aulaSelect.addEventListener('change', handleAulaChange);
     form.addEventListener('submit', handleSaveNovedad);
+
+    // ✅ NUEVO: Configurar listeners de filtros y paginación
+    if (filtroFecha) filtroFecha.addEventListener('change', aplicarFiltros);
+    if (filtroAula) filtroAula.addEventListener('change', aplicarFiltros);
+    if (resetFiltrosBtn) resetFiltrosBtn.addEventListener('click', resetearFiltros);
+    if (pagAnterior) pagAnterior.addEventListener('click', () => cambiarPagina(-1));
+    if (pagSiguiente) pagSiguiente.addEventListener('click', () => cambiarPagina(1));
 
     // Cargar datos
     loadAulasIntoSelect();
@@ -147,23 +178,50 @@ function toggleNovedadForm(show) {
 }
 
 /**
- * Carga aulas activas
+ * Carga aulas activas y próximas para gestión de novedades
  */
 function loadAulasIntoSelect() {
-    const q = query(collection(db, 'sfd_aulas'), where('estado', 'in', ['En Curso', 'Próximo']));
+    // ✅ CORREGIDO: 'Próximo' → 'Próxima'
+    const q = query(collection(db, 'sfd_aulas'), where('estado', 'in', ['En Curso', 'Próxima']));
     
     onSnapshot(q, (snapshot) => {
         aulaSelect.innerHTML = '<option value="">-- Selecciona un aula --</option>';
         aulaCache.clear();
+        
+        if (snapshot.empty) {
+            aulaSelect.innerHTML = '<option value="">No hay aulas activas o próximas</option>';
+            console.log('ℹ️ No se encontraron aulas En Curso o Próximas');
+            return;
+        }
+        
         snapshot.forEach(doc => {
             const aula = { id: doc.id, ...doc.data() };
             aulaCache.set(aula.id, aula);
             aulaSelect.innerHTML += `<option value="${aula.id}">${aula.codigo_aula}</option>`;
         });
+        
+        console.log(`✅ ${aulaCache.size} aulas cargadas en selector de novedades`);
+        
+        // ✅ NUEVO: Actualizar select de filtros
+        actualizarFiltroAulas();
     }, (error) => {
         console.error("❌ Error al cargar aulas:", error);
         aulaSelect.innerHTML = '<option value="">Error al cargar aulas</option>';
     });
+}
+
+/**
+ * ✅ NUEVO: Actualiza el select de filtro de aulas
+ */
+function actualizarFiltroAulas() {
+    if (!filtroAula) return;
+    
+    const aulasUnicas = Array.from(aulaCache.values())
+        .map(aula => aula.codigo_aula)
+        .sort();
+    
+    filtroAula.innerHTML = '<option value="">Todas las aulas</option>' +
+        aulasUnicas.map(codigo => `<option value="${codigo}">${codigo}</option>`).join('');
 }
 
 /**
@@ -232,7 +290,7 @@ async function handleAulaChange(e) {
             return;
         }
         
-        // ✅ NUEVO: Filtrar sesiones que NO han pasado
+        // ✅ Filtrar sesiones que NO han pasado
         const ahoraPeru = getAhoraPeru();
         const sesionesDisponibles = [];
         
@@ -283,7 +341,7 @@ async function handleAulaChange(e) {
 }
 
 /**
- * ✅ V2.0: Recalcula fecha_fin del aula después de reprogramación
+ * ✅ Recalcula fecha_fin del aula después de reprogramación
  */
 async function recalcularFechaFinAula(aulaId) {
     try {
@@ -315,7 +373,7 @@ async function recalcularFechaFinAula(aulaId) {
 }
 
 /**
- * ✅ V2.0: Guarda novedad con actualización de timestamps completos
+ * ✅ Guarda novedad con actualización de timestamps completos
  */
 async function handleSaveNovedad(e) {
     e.preventDefault();
@@ -351,7 +409,8 @@ async function handleSaveNovedad(e) {
             fecha_original: sesionData.fecha,
             motivo: motivo,
             estado: 'aprobado',
-            registrado_por: "admin@sfd.com"
+            registrado_por: "admin@sfd.com",
+            timestamp: Timestamp.now() // ✅ NUEVO: Para ordenar por fecha de registro
         };
 
         const sesionRef = doc(db, `sfd_aulas/${aulaId}/sesiones`, sesionId);
@@ -483,52 +542,176 @@ async function handleSaveNovedad(e) {
 }
 
 /**
- * Escucha y muestra tabla de novedades
+ * ✅ CORREGIDO: Escucha y almacena todas las novedades (ordenamiento en cliente)
  */
 function listenForNovedades() {
+    // ✅ Query sin orderBy para incluir novedades antiguas sin timestamp
     const q = query(collection(db, 'sfd_novedades_clases'));
+    
     onSnapshot(q, (snapshot) => {
-        let tableHtml = `
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Aula</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Sesión</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Tipo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Detalle</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Motivo</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-        `;
+        todasLasNovedades = [];
         
-        if (snapshot.empty) {
-            tableHtml += `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No hay novedades registradas.</td></tr>`;
-        } else {
-            snapshot.forEach(doc => {
-                const n = doc.data();
-                const fechaOrgStr = n.fecha_original.toDate().toLocaleDateString('es-ES');
-                let detalle = '';
-                if (n.tipo === 'reemplazo') {
-                    detalle = `Reemplazo para el ${fechaOrgStr}`;
-                } else if (n.tipo === 'reprogramacion') {
-                    const fechaNueStr = n.nueva_fecha.toDate().toLocaleDateString('es-ES');
-                    detalle = `Movida del ${fechaOrgStr} al ${fechaNueStr}`;
-                }
-                
-                tableHtml += `
-                    <tr>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">${n.codigo_aula}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">${n.sesion_numero}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 capitalize">${n.tipo}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">${detalle}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">${n.motivo}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        tableHtml += `</tbody></table>`;
-        tableContainer.innerHTML = tableHtml;
+        snapshot.forEach(doc => {
+            todasLasNovedades.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // ✅ Ordenar en JavaScript (más recientes primero)
+        todasLasNovedades.sort((a, b) => {
+            // Si ambas tienen timestamp, ordenar por timestamp
+            if (a.timestamp && b.timestamp) {
+                return b.timestamp.toMillis() - a.timestamp.toMillis();
+            }
+            // Si solo 'a' tiene timestamp, va primero
+            if (a.timestamp && !b.timestamp) {
+                return -1;
+            }
+            // Si solo 'b' tiene timestamp, va primero
+            if (!a.timestamp && b.timestamp) {
+                return 1;
+            }
+            // Si ninguna tiene timestamp, ordenar por fecha_original (descendente)
+            if (a.fecha_original && b.fecha_original) {
+                return b.fecha_original.toMillis() - a.fecha_original.toMillis();
+            }
+            // Fallback: mantener orden original
+            return 0;
+        });
+        
+        console.log(`✅ ${todasLasNovedades.length} novedades cargadas y ordenadas`);
+        
+        // Aplicar filtros y renderizar
+        aplicarFiltros();
+    }, (error) => {
+        console.error("❌ Error al escuchar novedades:", error);
+        tableContainer.innerHTML = `<p class="text-center text-red-500 p-6">Error al cargar novedades.</p>`;
     });
+}
+
+/**
+ * ✅ NUEVO: Aplica filtros a las novedades
+ */
+function aplicarFiltros() {
+    const fechaSeleccionada = filtroFecha ? filtroFecha.value : '';
+    const aulaSeleccionada = filtroAula ? filtroAula.value : '';
+    
+    novedadesFiltradas = [...todasLasNovedades];
+    
+    // Filtro por fecha
+    if (fechaSeleccionada) {
+        const fechaObj = new Date(fechaSeleccionada + 'T00:00:00-05:00');
+        novedadesFiltradas = novedadesFiltradas.filter(n => {
+            const fechaNovedad = n.fecha_original.toDate();
+            return fechaNovedad.toDateString() === fechaObj.toDateString();
+        });
+    }
+    
+    // Filtro por aula
+    if (aulaSeleccionada) {
+        novedadesFiltradas = novedadesFiltradas.filter(n => n.codigo_aula === aulaSeleccionada);
+    }
+    
+    // Renderizar primera página
+    renderNovedadesPaginadas(1);
+}
+
+/**
+ * ✅ NUEVO: Resetea los filtros
+ */
+function resetearFiltros() {
+    if (filtroFecha) filtroFecha.value = '';
+    if (filtroAula) filtroAula.value = '';
+    aplicarFiltros();
+}
+
+/**
+ * ✅ NUEVO: Renderiza novedades con paginación
+ */
+function renderNovedadesPaginadas(pagina) {
+    paginaActualNum = pagina;
+    
+    const totalNovedades = novedadesFiltradas.length;
+    const totalPaginas = Math.ceil(totalNovedades / NOVEDADES_POR_PAGINA);
+    
+    // Calcular rango
+    const inicio = (pagina - 1) * NOVEDADES_POR_PAGINA;
+    const fin = Math.min(inicio + NOVEDADES_POR_PAGINA, totalNovedades);
+    const novedadesPagina = novedadesFiltradas.slice(inicio, fin);
+    
+    // Renderizar tabla
+    let tableHtml = `
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Fecha Registro</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Aula</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Sesión</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Detalle</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Motivo</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+    `;
+    
+    if (novedadesPagina.length === 0) {
+        tableHtml += `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No hay novedades que mostrar.</td></tr>`;
+    } else {
+        novedadesPagina.forEach(n => {
+            // ✅ Manejar novedades antiguas sin timestamp
+const fechaRegistro = n.timestamp 
+    ? formatFechaPeru(n.timestamp, true) 
+    : (n.fecha_original ? formatFechaPeru(n.fecha_original) : 'N/A');
+    
+            const fechaOrgStr = formatFechaPeru(n.fecha_original);
+            
+            let detalle = '';
+            let tipoBadge = '';
+            
+            if (n.tipo === 'reemplazo') {
+                tipoBadge = '<span class="badge" style="background-color: #d1ecf1; color: #0c5460;">Reemplazo</span>';
+                detalle = `Sesión del ${fechaOrgStr}`;
+            } else if (n.tipo === 'reprogramacion') {
+                tipoBadge = '<span class="badge" style="background-color: #fff3cd; color: #856404;">Reprogramación</span>';
+                const fechaNueStr = formatFechaPeru(n.nueva_fecha);
+                detalle = `De ${fechaOrgStr} a ${fechaNueStr}`;
+            }
+            
+            tableHtml += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">${fechaRegistro}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${n.codigo_aula}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">Sesión ${n.sesion_numero}</td>
+                    <td class="px-6 py-4 text-sm">${tipoBadge}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${detalle}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="${n.motivo}">${n.motivo}</td>
+                </tr>
+            `;
+        });
+    }
+
+    tableHtml += `</tbody></table>`;
+    tableContainer.innerHTML = tableHtml;
+    
+    // Actualizar controles de paginación
+    if (paginacionContainer && totalNovedades > 0) {
+        novedadesInicio.textContent = inicio + 1;
+        novedadesFin.textContent = fin;
+        novedadesTotal.textContent = totalNovedades;
+        paginaActual.textContent = `Página ${pagina} de ${totalPaginas}`;
+        
+        pagAnterior.disabled = pagina === 1;
+        pagSiguiente.disabled = pagina === totalPaginas;
+        
+        paginacionContainer.classList.remove('hidden');
+    } else if (paginacionContainer) {
+        paginacionContainer.classList.add('hidden');
+    }
+}
+
+/**
+ * ✅ NUEVO: Cambia de página
+ */
+function cambiarPagina(direccion) {
+    const nuevaPagina = paginaActualNum + direccion;
+    renderNovedadesPaginadas(nuevaPagina);
 }

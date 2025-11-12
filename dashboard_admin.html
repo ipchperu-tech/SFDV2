@@ -370,78 +370,132 @@
                     </div>
                 </section>
                 
-                <!-- SECCIÓN: NOVEDADES (Etapa 4) -->
-                <section id="novedades-section" class="app-section hidden">
-                    
-                    <div class="flex justify-end mb-4">
-                        <button id="show-novedad-form-button" class="btn btn-primary">
-                            <i class="fas fa-plus mr-2"></i> Registrar Novedad
-                        </button>
-                    </div>
+<!-- SECCIÓN: NOVEDADES (Etapa 4) -->
+<section id="novedades-section" class="app-section hidden">
+    
+    <div class="flex justify-end mb-4">
+        <button id="show-novedad-form-button" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i> Registrar Novedad
+        </button>
+    </div>
 
-                    <div id="new-novedad-form-container" class="card p-6 md:p-8 mb-6 hidden">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Registrar Novedad de Clase</h2>
-                        <form id="new-novedad-form">
-                            <!-- Paso 1: Tipo de Novedad -->
-                            <div>
-                                <label class="form-label">1. Tipo de Novedad</label>
-                                <fieldset class="flex flex-wrap gap-4 mt-2">
-                                    <div>
-                                        <input type="radio" name="tipo_novedad_radio" id="tipo_reemplazo" value="reemplazo" class="freq-radio-input">
-                                        <label for="tipo_reemplazo" class="freq-radio-label">Reemplazo de Docente</label>
-                                    </div>
-                                    <div>
-                                        <input type="radio" name="tipo_novedad_radio" id="tipo_reprogramacion" value="reprogramacion" class="freq-radio-input">
-                                        <label for="tipo_reprogramacion" class="freq-radio-label">Reprogramación de Clase</label>
-                                    </div>
-                                </fieldset>
-                            </div>
-                            
-                            <!-- Paso 2: Aula y Sesión -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                <div>
-                                    <label for="novedad_aula_select" class="form-label">2. Aula Afectada</label>
-                                    <select id="novedad_aula_select" name="novedad_aula_select"></select>
-                                </div>
-                                <div>
-                                    <label for="novedad_sesion_select" class="form-label">3. Sesión Afectada</label>
-                                    <select id="novedad_sesion_select" name="novedad_sesion_select"></select>
-                                </div>
-                            </div>
-
-                            <!-- Paso 3: Campos Dinámicos -->
-                            <div id="novedad_reemplazo_container" class="mt-6 hidden">
-                                <label for="novedad_docente_reemplazo" class="form-label">4. Docente de Reemplazo</label>
-                                <select id="novedad_docente_reemplazo" name="novedad_docente_reemplazo"></select>
-                            </div>
-                            
-                            <div id="novedad_reprogramar_container" class="mt-6 hidden">
-                                <label for="novedad_nueva_fecha" class="form-label">4. Nueva Fecha para la Sesión</label>
-                                <input type="date" id="novedad_nueva_fecha" name="novedad_nueva_fecha">
-                            </div>
-
-                            <!-- Paso 4: Motivo -->
-                            <div class="mt-6">
-                                <label for="novedad_motivo" class="form-label">5. Motivo de la Novedad</label>
-                                <textarea id="novedad_motivo" name="novedad_motivo" rows="3" placeholder="Ej: El docente se reportó enfermo..."></textarea>
-                            </div>
-                            
-                            <!-- Botones y Error -->
-                            <div class="flex items-center justify-end gap-4 mt-8">
-                                <p id="form-novedad-error" class="text-sm text-red-600 mr-auto"></p>
-                                <button type="button" id="cancel-novedad-form-button" class="btn btn-secondary">Cancelar</button>
-                                <button type="submit" id="save-novedad-button" class="btn btn-primary">Guardar Novedad</button>
-                            </div>
-                        </form>
+    <div id="new-novedad-form-container" class="card p-6 md:p-8 mb-6 hidden">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">Registrar Novedad de Clase</h2>
+        <form id="new-novedad-form">
+            <!-- Paso 1: Tipo de Novedad -->
+            <div>
+                <label class="form-label">1. Tipo de Novedad</label>
+                <fieldset class="flex flex-wrap gap-4 mt-2">
+                    <div>
+                        <input type="radio" name="tipo_novedad_radio" id="tipo_reemplazo" value="reemplazo" class="freq-radio-input">
+                        <label for="tipo_reemplazo" class="freq-radio-label">Reemplazo de Docente</label>
                     </div>
-                    
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Historial de Novedades</h3>
-                    <div class="card overflow-hidden">
-                        <div id="novedades-table-container">
-                            <p class="p-6 text-center text-gray-500">Cargando novedades...</p>
-                        </div>
+                    <div>
+                        <input type="radio" name="tipo_novedad_radio" id="tipo_reprogramacion" value="reprogramacion" class="freq-radio-input">
+                        <label for="tipo_reprogramacion" class="freq-radio-label">Reprogramación de Clase</label>
                     </div>
-                </section>
+                </fieldset>
+            </div>
+            
+            <!-- Paso 2: Aula y Sesión -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                    <label for="novedad_aula_select" class="form-label">2. Aula Afectada</label>
+                    <select id="novedad_aula_select" name="novedad_aula_select"></select>
+                </div>
+                <div>
+                    <label for="novedad_sesion_select" class="form-label">3. Sesión Afectada</label>
+                    <select id="novedad_sesion_select" name="novedad_sesion_select"></select>
+                </div>
+            </div>
+
+            <!-- Paso 3: Campos Dinámicos -->
+            <div id="novedad_reemplazo_container" class="mt-6 hidden">
+                <label for="novedad_docente_reemplazo" class="form-label">4. Docente de Reemplazo</label>
+                <select id="novedad_docente_reemplazo" name="novedad_docente_reemplazo"></select>
+            </div>
+            
+            <div id="novedad_reprogramar_container" class="mt-6 hidden">
+                <label for="novedad_nueva_fecha" class="form-label">4. Nueva Fecha para la Sesión</label>
+                <input type="date" id="novedad_nueva_fecha" name="novedad_nueva_fecha">
+            </div>
+
+            <!-- Paso 4: Motivo -->
+            <div class="mt-6">
+                <label for="novedad_motivo" class="form-label">5. Motivo de la Novedad</label>
+                <textarea id="novedad_motivo" name="novedad_motivo" rows="3" placeholder="Ej: El docente se reportó enfermo..."></textarea>
+            </div>
+            
+            <!-- Botones y Error -->
+            <div class="flex items-center justify-end gap-4 mt-8">
+                <p id="form-novedad-error" class="text-sm text-red-600 mr-auto"></p>
+                <button type="button" id="cancel-novedad-form-button" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" id="save-novedad-button" class="btn btn-primary">Guardar Novedad</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- ✅ NUEVO: Filtros -->
+    <div class="card mb-4">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <label for="filtro-fecha-novedades" class="block text-sm font-medium text-gray-700 mb-2">
+                    Filtrar por fecha
+                </label>
+                <input type="date" id="filtro-fecha-novedades" class="w-full">
+            </div>
+            
+            <div class="flex-1 min-w-[200px]">
+                <label for="filtro-aula-novedades" class="block text-sm font-medium text-gray-700 mb-2">
+                    Filtrar por aula
+                </label>
+                <select id="filtro-aula-novedades" class="w-full">
+                    <option value="">Todas las aulas</option>
+                </select>
+            </div>
+            
+            <div class="flex items-end">
+                <button id="reset-filtros-novedades" class="btn btn-secondary">
+                    <i class="fas fa-redo mr-2"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Título -->
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Historial de Novedades</h3>
+    
+    <!-- Tabla -->
+    <div class="card overflow-hidden mb-6">
+        <div class="overflow-x-auto">
+            <div id="novedades-table-container">
+                <p class="p-6 text-center text-gray-500">Cargando novedades...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ✅ NUEVO: Controles de Paginación -->
+    <div id="novedades-paginacion-container" class="hidden card">
+        <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-600">
+                Mostrando <span id="novedades-inicio">1</span>-<span id="novedades-fin">20</span> 
+                de <span id="novedades-total">0</span> novedades
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="pag-anterior-novedades" class="btn btn-secondary btn-sm" disabled>
+                    ← Anterior
+                </button>
+                <span id="pagina-actual-novedades" class="px-3 py-1 text-sm font-medium text-gray-700">
+                    Página 1
+                </span>
+                <button id="pag-siguiente-novedades" class="btn btn-secondary btn-sm">
+                    Siguiente →
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
                 
                 <!-- SECCIÓN: GENERAR ENCUESTA (✅ REDISEÑADA) -->
                 <section id="generar-encuesta-section" class="app-section hidden">
