@@ -43,18 +43,16 @@ import {
     aulaPuedeAvanzarOCerrar
 } from '../utils/fecha-utils.js';
 
+// ✅ NUEVO: Importar configuración centralizada de feriados
+import { FERIADOS_ACTIVOS } from '../config/feriados.js';
+
 // --- Caché del Módulo ---
 let docenteCache = new Map();
 let aulasCache = new Map();
 let sesionesCache = new Map();
 
-// Array de feriados
-const FERIADOS = [
-    '2025-12-08', '2025-12-09', '2025-12-24', '2025-12-25', '2025-12-31',
-    '2026-01-01', '2026-04-02', '2026-04-03', '2026-04-05', '2026-05-01',
-    '2026-06-29', '2026-07-28', '2026-07-29', '2026-08-30', '2026-10-08',
-    '2026-11-01', '2026-12-08', '2026-12-25'
-];
+// ✅ Array de feriados (importado desde configuración centralizada)
+const FERIADOS = FERIADOS_ACTIVOS;
 
 // --- Configuración de Programas ---
 const PROGRAMAS = {
@@ -514,6 +512,7 @@ function renderAulasTable() {
                     <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Frecuencia</th>
                     <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Horario</th>
                     <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Inicio</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Fin</th>
                     <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Sesiones</th>
                     <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Estado</th>
                     <th class="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500 whitespace-nowrap">Acciones</th>
@@ -523,11 +522,12 @@ function renderAulasTable() {
     `;
     
     if (aulasCache.size === 0) {
-        tableHtml += `<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">No hay aulas registradas.</td></tr>`;
+        tableHtml += `<tr><td colspan="11" class="px-6 py-4 text-center text-gray-500">No hay aulas registradas.</td></tr>`;
     } else {
-const promesasActualizacion = []; // Para actualizar estados en paralelo
+        // Array para actualizar estados en paralelo (debe estar fuera del forEach)
+        const promesasActualizacion = [];
 
-aulasCache.forEach(aula => {
+        aulasCache.forEach(aula => {
     const docente = docenteCache.get(aula.id_docente_asignado);
     const docenteNombre = docente ? docente.nombre_completo : 'Sin asignar';
     
@@ -608,23 +608,24 @@ const estadoFinal = estadoCalculado || aula.estado || 'Sin estado';
                     <td class="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">${aula.frecuencia}</td>
                     <td class="px-4 py-4 text-sm text-gray-500 whitespace-nowrap font-mono">${horarioStr}</td>
                     <td class="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">${formatFechaPeru(aula.fecha_inicio)}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">${aula.fecha_fin ? formatFechaPeru(aula.fecha_fin) : '-'}</td>
                     <td class="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">${sesionesCompletadas} / ${aula.total_sesiones}</td>
                     <td class="px-4 py-4 text-sm whitespace-nowrap">${estadoBadge}</td>
                     <td class="px-4 py-4 text-right text-sm font-medium whitespace-nowrap">${accionesBotones}</td>
-                </tr>
+ </tr>
             `;
-        });
-    }
+        }); // ← Fin del forEach
+        
+        // ✅ Ejecutar actualizaciones de estado en paralelo
+        if (promesasActualizacion.length > 0) {
+            Promise.all(promesasActualizacion).then(() => {
+                console.log(`✅ ${promesasActualizacion.length} estados actualizados`);
+            });
+        }
+    } // ← Fin del else
     
-tableHtml += `</tbody></table>`;
+    tableHtml += `</tbody></table>`;
     tableContainer.innerHTML = tableHtml;
-    
-    // ✅ Ejecutar actualizaciones de estado en paralelo
-    if (promesasActualizacion.length > 0) {
-        Promise.all(promesasActualizacion).then(() => {
-            console.log(`✅ ${promesasActualizacion.length} estados actualizados`);
-        });
-    }
     
     console.log(`✅ ${aulasCache.size} aulas renderizadas (responsive)`);
 }

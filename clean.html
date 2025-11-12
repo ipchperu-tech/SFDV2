@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧹 SFD - Herramienta de Limpieza</title>
+    <link rel="icon" href="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .danger-zone {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 2px solid #dc2626;
+        }
+        .collection-item {
+            transition: all 0.2s ease;
+        }
+        .collection-item:hover {
+            background-color: #f9fafb;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        .btn-warning {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .progress-bar {
+            height: 4px;
+            background-color: #10b981;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    
+    <div class="max-w-4xl mx-auto py-8 px-4">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <img src="https://ipch.net.pe/wp-content/uploads/2025/07/IPCH-VERTICAL-V1-COLOR.png" 
+                 alt="Logo IPCH" 
+                 class="h-20 mx-auto mb-4">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">🧹 Herramienta de Limpieza SFD</h1>
+            <p class="text-gray-600">Elimina datos del sistema de manera segura y controlada</p>
+        </div>
+
+        <!-- Zona de Advertencia -->
+        <div class="danger-zone rounded-lg p-6 mb-8">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-lg font-bold text-red-900 mb-2">⚠️ ZONA DE PELIGRO</h3>
+                    <p class="text-red-800 mb-3">
+                        Esta herramienta elimina datos de manera <strong>PERMANENTE</strong>. 
+                        No hay forma de recuperar los datos una vez eliminados.
+                    </p>
+                    <ul class="list-disc list-inside text-red-800 text-sm space-y-1">
+                        <li>Haz backup de tu base de datos antes de usar esta herramienta</li>
+                        <li>Solo usa esto en entornos de desarrollo o prueba</li>
+                        <li>Verifica dos veces antes de eliminar</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas del Sistema -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">📊 Estado Actual del Sistema</h2>
+            <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Se llenará dinámicamente -->
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-bold text-blue-600">-</div>
+                    <div class="text-xs text-gray-500">Aulas</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-bold text-green-600">-</div>
+                    <div class="text-xs text-gray-500">Docentes</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-bold text-purple-600">-</div>
+                    <div class="text-xs text-gray-500">Encuestas</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-bold text-orange-600">-</div>
+                    <div class="text-xs text-gray-500">Usuarios</div>
+                </div>
+            </div>
+            <button id="refresh-stats-btn" class="mt-4 btn btn-secondary text-sm">
+                🔄 Actualizar Estadísticas
+            </button>
+        </div>
+
+        <!-- Opciones de Limpieza -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">🗑️ Seleccionar Datos a Eliminar</h2>
+            
+            <div class="space-y-3" id="collections-list">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="mt-6 flex gap-3">
+                <button id="select-all-btn" class="btn btn-secondary">
+                    ✓ Seleccionar Todo
+                </button>
+                <button id="deselect-all-btn" class="btn btn-secondary">
+                    ✗ Deseleccionar Todo
+                </button>
+            </div>
+        </div>
+
+        <!-- Área de Confirmación -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">✅ Confirmación de Seguridad</h2>
+            
+            <div class="mb-4">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="confirm-checkbox" class="w-5 h-5 text-red-600">
+                    <span class="text-gray-700">
+                        Entiendo que esta acción es <strong>IRREVERSIBLE</strong> y elimina datos permanentemente
+                    </span>
+                </label>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Escribe <code class="bg-gray-100 px-2 py-1 rounded text-red-600">ELIMINAR</code> para confirmar:
+                </label>
+                <input type="text" id="confirm-text" 
+                       placeholder="Escribe ELIMINAR aquí"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+            </div>
+
+            <button id="delete-btn" 
+                    disabled
+                    class="w-full btn btn-danger opacity-50 cursor-not-allowed">
+                🗑️ ELIMINAR DATOS SELECCIONADOS
+            </button>
+        </div>
+
+        <!-- Progreso -->
+        <div id="progress-container" class="hidden bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">⏳ Eliminando datos...</h3>
+            <div class="bg-gray-200 rounded-full h-2 mb-2">
+                <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <p id="progress-text" class="text-sm text-gray-600 text-center">0%</p>
+            <div id="log-container" class="mt-4 p-4 bg-gray-50 rounded-lg max-h-64 overflow-y-auto">
+                <!-- Logs aquí -->
+            </div>
+        </div>
+
+        <!-- Resultado -->
+        <div id="result-container" class="hidden bg-white rounded-lg shadow-md p-6">
+            <div id="result-content"></div>
+            <button id="close-result-btn" class="mt-4 btn btn-secondary w-full">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ⚠️ CONFIGURACIÓN DE FIREBASE - Reemplazar con tu configuración
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUG8G7BnAnImJujjuE93MWk-h3pSrq-DE",
+            authDomain: "sfd-ipch.firebaseapp.com",
+            projectId: "sfd-ipch",
+            storageBucket: "sfd-ipch.firebasestorage.app",
+            messagingSenderId: "40752492685",
+            appId: "1:40752492685:web:4c3cd9e0e6b9089180f2c4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Colecciones del sistema
+        const COLLECTIONS = {
+            'sfd_aulas': { name: 'Aulas', icon: '🏫', hasSubcollections: true, subcollection: 'sesiones' },
+            'sfd_docentes': { name: 'Docentes', icon: '👨‍🏫', hasSubcollections: false },
+            'sfd_usuarios': { name: 'Usuarios/Colaboradores', icon: '👥', hasSubcollections: false },
+            'sfd_encuestas_respuestas': { name: 'Respuestas de Encuestas', icon: '📝', hasSubcollections: false },
+            'sfd_enlaces_activos': { name: 'Enlaces de Encuesta (Tickets)', icon: '🔗', hasSubcollections: false },
+            'sfd_novedades_clases': { name: 'Novedades (Reprogramaciones/Reemplazos)', icon: '⚠️', hasSubcollections: false },
+            'sfd_evaluaciones_calidad': { name: 'Evaluaciones de Calidad', icon: '⭐', hasSubcollections: false },
+            'sfd_public_ratings': { name: 'Calificaciones Públicas', icon: '📊', hasSubcollections: false }
+        };
+
+        let stats = {};
+
+        // Elementos del DOM
+        const elements = {
+            statsContainer: document.getElementById('stats-container'),
+            collectionsList: document.getElementById('collections-list'),
+            confirmCheckbox: document.getElementById('confirm-checkbox'),
+            confirmText: document.getElementById('confirm-text'),
+            deleteBtn: document.getElementById('delete-btn'),
+            selectAllBtn: document.getElementById('select-all-btn'),
+            deselectAllBtn: document.getElementById('deselect-all-btn'),
+            refreshStatsBtn: document.getElementById('refresh-stats-btn'),
+            progressContainer: document.getElementById('progress-container'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            logContainer: document.getElementById('log-container'),
+            resultContainer: document.getElementById('result-container'),
+            resultContent: document.getElementById('result-content'),
+            closeResultBtn: document.getElementById('close-result-btn')
+        };
+
+        // Inicializar
+        init();
+
+        async function init() {
+            await loadStats();
+            renderCollections();
+            setupEventListeners();
+        }
+
+        // Cargar estadísticas
+        async function loadStats() {
+            const tempStats = {};
+            
+            for (const [collectionName, info] of Object.entries(COLLECTIONS)) {
+                try {
+                    const snapshot = await getDocs(collection(db, collectionName));
+                    tempStats[collectionName] = snapshot.size;
+                } catch (error) {
+                    console.error(`Error cargando ${collectionName}:`, error);
+                    tempStats[collectionName] = 0;
+                }
+            }
+            
+            stats = tempStats;
+            renderStats();
+        }
+
+        // Renderizar estadísticas
+        function renderStats() {
+            const statsHtml = `
+                <div class="text-center p-4 bg-blue-50 rounded">
+                    <div class="text-2xl font-bold text-blue-600">${stats['sfd_aulas'] || 0}</div>
+                    <div class="text-xs text-gray-500">Aulas</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded">
+                    <div class="text-2xl font-bold text-green-600">${stats['sfd_docentes'] || 0}</div>
+                    <div class="text-xs text-gray-500">Docentes</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded">
+                    <div class="text-2xl font-bold text-purple-600">${stats['sfd_encuestas_respuestas'] || 0}</div>
+                    <div class="text-xs text-gray-500">Encuestas</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded">
+                    <div class="text-2xl font-bold text-orange-600">${stats['sfd_usuarios'] || 0}</div>
+                    <div class="text-xs text-gray-500">Usuarios</div>
+                </div>
+            `;
+            elements.statsContainer.innerHTML = statsHtml;
+        }
+
+        // Renderizar lista de colecciones
+        function renderCollections() {
+            let html = '';
+            
+            for (const [collectionName, info] of Object.entries(COLLECTIONS)) {
+                const count = stats[collectionName] || 0;
+                html += `
+                    <label class="collection-item flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
+                        <input type="checkbox" 
+                               class="collection-checkbox w-5 h-5 text-red-600" 
+                               data-collection="${collectionName}">
+                        <div class="ml-3 flex-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-gray-900">
+                                    ${info.icon} ${info.name}
+                                </span>
+                                <span class="text-sm text-gray-500">${count} documentos</span>
+                            </div>
+                            ${info.hasSubcollections ? '<div class="text-xs text-gray-500 mt-1">⚠️ Incluye subcolecciones</div>' : ''}
+                        </div>
+                    </label>
+                `;
+            }
+            
+            elements.collectionsList.innerHTML = html;
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Validación de confirmación
+            function validateConfirmation() {
+                const isChecked = elements.confirmCheckbox.checked;
+                const isTextCorrect = elements.confirmText.value === 'ELIMINAR';
+                const hasSelections = document.querySelectorAll('.collection-checkbox:checked').length > 0;
+                
+                const isValid = isChecked && isTextCorrect && hasSelections;
+                elements.deleteBtn.disabled = !isValid;
+                elements.deleteBtn.classList.toggle('opacity-50', !isValid);
+                elements.deleteBtn.classList.toggle('cursor-not-allowed', !isValid);
+            }
+
+            elements.confirmCheckbox.addEventListener('change', validateConfirmation);
+            elements.confirmText.addEventListener('input', validateConfirmation);
+            elements.collectionsList.addEventListener('change', validateConfirmation);
+
+            // Seleccionar/Deseleccionar todo
+            elements.selectAllBtn.addEventListener('click', () => {
+                document.querySelectorAll('.collection-checkbox').forEach(cb => cb.checked = true);
+                validateConfirmation();
+            });
+
+            elements.deselectAllBtn.addEventListener('click', () => {
+                document.querySelectorAll('.collection-checkbox').forEach(cb => cb.checked = false);
+                validateConfirmation();
+            });
+
+            // Actualizar estadísticas
+            elements.refreshStatsBtn.addEventListener('click', async () => {
+                elements.refreshStatsBtn.disabled = true;
+                elements.refreshStatsBtn.textContent = '⏳ Actualizando...';
+                await loadStats();
+                elements.refreshStatsBtn.disabled = false;
+                elements.refreshStatsBtn.textContent = '🔄 Actualizar Estadísticas';
+            });
+
+            // Botón de eliminar
+            elements.deleteBtn.addEventListener('click', handleDelete);
+
+            // Cerrar resultado
+            elements.closeResultBtn.addEventListener('click', () => {
+                elements.resultContainer.classList.add('hidden');
+                location.reload();
+            });
+        }
+
+        // Manejar eliminación
+        async function handleDelete() {
+            const selected = Array.from(document.querySelectorAll('.collection-checkbox:checked'))
+                .map(cb => cb.dataset.collection);
+
+            if (selected.length === 0) return;
+
+            // Confirmación final
+            if (!confirm(`¿Estás ABSOLUTAMENTE SEGURO de que quieres eliminar ${selected.length} colección(es)?\n\nEsta acción NO se puede deshacer.`)) {
+                return;
+            }
+
+            // Mostrar progreso
+            elements.progressContainer.classList.remove('hidden');
+            elements.logContainer.innerHTML = '';
+
+            const totalCollections = selected.length;
+            let currentCollection = 0;
+
+            try {
+                for (const collectionName of selected) {
+                    currentCollection++;
+                    const percentage = Math.round((currentCollection / totalCollections) * 100);
+                    updateProgress(percentage, `Eliminando ${COLLECTIONS[collectionName].name}...`);
+                    
+                    await deleteCollection(collectionName);
+                    
+                    addLog(`✅ ${COLLECTIONS[collectionName].name} eliminada`);
+                }
+
+                // Mostrar resultado exitoso
+                showResult('success', `✅ Eliminación completada exitosamente`, 
+                    `Se eliminaron ${selected.length} colección(es) correctamente.`);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showResult('error', `❌ Error durante la eliminación`, error.message);
+            }
+        }
+
+        // Eliminar una colección completa
+        async function deleteCollection(collectionName) {
+            const info = COLLECTIONS[collectionName];
+            const collectionRef = collection(db, collectionName);
+            const snapshot = await getDocs(collectionRef);
+
+            if (snapshot.empty) {
+                addLog(`⚠️ ${info.name} ya está vacía`);
+                return;
+            }
+
+            addLog(`🗑️ Eliminando ${snapshot.size} documentos de ${info.name}...`);
+
+            // Si tiene subcolecciones, eliminarlas primero
+            if (info.hasSubcollections) {
+                for (const docSnap of snapshot.docs) {
+                    const subcollectionRef = collection(db, collectionName, docSnap.id, info.subcollection);
+                    const subcollectionSnapshot = await getDocs(subcollectionRef);
+                    
+                    if (!subcollectionSnapshot.empty) {
+                        addLog(`  ↳ Eliminando ${subcollectionSnapshot.size} sesiones del aula ${docSnap.id}...`);
+                        for (const subdoc of subcollectionSnapshot.docs) {
+                            await deleteDoc(subdoc.ref);
+                        }
+                    }
+                }
+            }
+
+            // Eliminar documentos principales
+            for (const docSnap of snapshot.docs) {
+                await deleteDoc(docSnap.ref);
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress(percentage, text) {
+            elements.progressBar.style.width = `${percentage}%`;
+            elements.progressText.textContent = `${percentage}% - ${text}`;
+        }
+
+        // Agregar log
+        function addLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'text-sm text-gray-700 py-1';
+            logEntry.textContent = message;
+            elements.logContainer.appendChild(logEntry);
+            elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+        }
+
+        // Mostrar resultado
+        function showResult(type, title, message) {
+            elements.progressContainer.classList.add('hidden');
+            
+            const bgColor = type === 'success' ? 'bg-green-50' : 'bg-red-50';
+            const textColor = type === 'success' ? 'text-green-900' : 'text-red-900';
+            
+            elements.resultContent.innerHTML = `
+                <div class="${bgColor} rounded-lg p-6">
+                    <h3 class="text-xl font-bold ${textColor} mb-2">${title}</h3>
+                    <p class="${textColor}">${message}</p>
+                </div>
+            `;
+            
+            elements.resultContainer.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

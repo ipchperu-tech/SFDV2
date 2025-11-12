@@ -180,7 +180,6 @@ export function sesionEstaCompletada(fechaHoraFin) {
     const ahoraPeru = getAhoraPeru();
     const finSesion = fechaHoraFin.toDate();
     
-    // Agregar 2 horas al fin de la sesión
 return ahoraPeru > finSesion;
 }
 
@@ -295,33 +294,6 @@ export function esFeriado(fecha, feriados) {
     const fechaStr = fecha.toDateString();
     const feriadosDateString = feriados.map(f => new Date(f + 'T00:00:00-05:00').toDateString());
     return feriadosDateString.includes(fechaStr);
-}
-
-/**
- * ⚠️ DEPRECADO: Usar calcularEstadoAulaConHora() en su lugar
- * Mantiene compatibilidad con código antiguo
- */
-export function calcularEstadoAula(fechaInicio, fechaFin, sesionesInfo) {
-    console.warn('⚠️ calcularEstadoAula() está deprecado. Usa calcularEstadoAulaConHora() para cálculos precisos.');
-    
-    // Si todas las sesiones están completadas → Finalizado
-    if (sesionesInfo.total > 0 && sesionesInfo.completadas === sesionesInfo.total) {
-        return 'Finalizado';
-    }
-    
-    if (!fechaInicio || !fechaFin) return null;
-    
-    const ahoraPeru = getAhoraPeru();
-    const inicio = fechaInicio.toDate();
-    const fin = fechaFin.toDate();
-    
-    const ahoraMs = ahoraPeru.getTime();
-    const inicioMs = inicio.getTime();
-    const finMs = fin.getTime();
-    
-    if (ahoraMs < inicioMs) return 'Próxima';
-    if (ahoraMs > finMs) return 'Finalizado';
-    return 'En Curso';
 }
 
 /**

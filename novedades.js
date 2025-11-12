@@ -26,21 +26,22 @@ import {
 // ✅ Importar utilidades de fecha
 import {
     combinarFechaHorario,
-    crearFechaPeru
+    crearFechaPeru,
+    getAhoraPeru
 } from '../utils/fecha-utils.js';
+
+// ✅ NUEVO: Importar configuración centralizada de feriados
+import { FERIADOS_ACTIVOS } from '../config/feriados.js';
 
 // --- Caché del Módulo ---
 let aulaCache = new Map();
 let docenteCache = new Map();
 let sesionesCache = new Map();
 
-// --- Feriados 2025-2026 ---
-const FERIADOS = [
-    '2025-12-08', '2025-12-09', '2025-12-24', '2025-12-25', '2025-12-31',
-    '2026-01-01', '2026-04-02', '2026-04-03', '2026-04-05', '2026-05-01',
-    '2026-06-29', '2026-07-28', '2026-07-29', '2026-08-30', '2026-10-08',
-    '2026-11-01', '2026-12-08', '2026-12-25'
-].map(f => new Date(f + 'T00:00:00-05:00').toDateString());
+// ✅ Feriados (importados desde configuración centralizada)
+// Convertimos a formato toDateString para compatibilidad con la función existente
+const FERIADOS = FERIADOS_ACTIVOS.map(f => new Date(f + 'T00:00:00-05:00').toDateString());
+
 
 // --- Mapeo de frecuencias ---
 const FRECUENCIA_A_DIAS = {
@@ -201,6 +202,7 @@ function handleTipoNovedadChange(e) {
 
 /**
  * Carga sesiones del aula seleccionada
+ * ✅ MEJORADO: Solo muestra sesiones futuras (que no han pasado)
  */
 async function handleAulaChange(e) {
     const aulaId = e.target.value;
@@ -213,6 +215,12 @@ async function handleAulaChange(e) {
     sesionesCache.clear();
     
     try {
+        // ✅ Obtener el aula para acceder a sus horarios
+        const aulaData = aulaCache.get(aulaId);
+        if (!aulaData) {
+            throw new Error('No se encontró información del aula');
+        }
+        
         const sesionesRef = collection(db, `sfd_aulas/${aulaId}/sesiones`);
         const q = query(sesionesRef, where('estado', 'in', ['programada', 'reprogramada']));
         const snapshot = await getDocs(q);
@@ -224,19 +232,49 @@ async function handleAulaChange(e) {
             return;
         }
         
-        const sesiones = [];
+        // ✅ NUEVO: Filtrar sesiones que NO han pasado
+        const ahoraPeru = getAhoraPeru();
+        const sesionesDisponibles = [];
+        
         snapshot.forEach(doc => {
             const sesion = { id: doc.id, ...doc.data() };
             sesionesCache.set(doc.id, sesion);
-            sesiones.push(sesion);
+            
+            // ✅ Verificar si la sesión ya pasó
+            if (sesion.fin) {
+                const finSesion = sesion.fin.toDate();
+                
+                // Solo agregar sesiones futuras (que aún no terminaron)
+                if (finSesion > ahoraPeru) {
+                    sesionesDisponibles.push(sesion);
+                }
+            } else {
+                // Si no tiene hora de fin (dato antiguo), incluirla por seguridad
+                sesionesDisponibles.push(sesion);
+            }
         });
         
-        sesiones.sort((a, b) => a.sesion - b.sesion);
+        // ✅ Verificar si hay sesiones futuras disponibles
+        if (sesionesDisponibles.length === 0) {
+            sesionSelect.innerHTML = '<option value="">No hay sesiones futuras para gestionar</option>';
+            console.log('ℹ️ Todas las sesiones de esta aula ya pasaron');
+            return;
+        }
         
-        sesiones.forEach(sesion => {
+        // Ordenar por número de sesión
+        sesionesDisponibles.sort((a, b) => a.sesion - b.sesion);
+        
+        // Generar las opciones con información completa
+        sesionesDisponibles.forEach(sesion => {
             const fechaStr = sesion.fecha.toDate().toLocaleDateString('es-PE');
-            sesionSelect.innerHTML += `<option value="${sesion.id}">Sesión ${sesion.sesion} - ${fechaStr}</option>`;
+            const horarioStr = aulaData.horario_inicio && aulaData.horario_fin 
+                ? ` (${aulaData.horario_inicio}-${aulaData.horario_fin})` 
+                : '';
+            
+            sesionSelect.innerHTML += `<option value="${sesion.id}">Sesión ${sesion.sesion} - ${fechaStr}${horarioStr}</option>`;
         });
+        
+        console.log(`✅ ${sesionesDisponibles.length} sesiones futuras disponibles para gestión`);
         
     } catch (error) {
         console.error("❌ Error al cargar sesiones:", error);

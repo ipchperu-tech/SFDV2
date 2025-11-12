@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Migración: Vincular Docentes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #c80000;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #a00000; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Migración: Vincular Usuarios Docentes</h1>
+    <p>Este script vinculará los usuarios de docentes con sus registros en la colección sfd_docentes.</p>
+    
+    <div class="status info">
+        <strong>Instrucciones:</strong>
+        <ol>
+            <li>Asegúrate de estar logueado como <strong>admin</strong></li>
+            <li>Click en "Ejecutar Migración"</li>
+            <li>Espera a que termine el proceso</li>
+            <li>Cierra esta página</li>
+        </ol>
+    </div>
+
+    <button id="migrateBtn" onclick="executeMigration()">Ejecutar Migración</button>
+    
+    <div id="results"></div>
+
+    <script type="module">
+        import { db } from './js/firebase-config.js';
+        import { 
+            collection, 
+            getDocs, 
+            doc, 
+            updateDoc, 
+            query, 
+            where 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.executeMigration = async function() {
+            const btn = document.getElementById('migrateBtn');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+            results.innerHTML = '<div class="status info">Iniciando migración...</div>';
+
+            try {
+                // 1. Obtener todos los docentes que tienen user_uid
+                const docentesRef = collection(db, 'sfd_docentes');
+                const docentesSnap = await getDocs(docentesRef);
+                
+                let processed = 0;
+                let updated = 0;
+                let skipped = 0;
+                let errors = 0;
+
+                for (const docenteDoc of docentesSnap.docs) {
+                    const docente = docenteDoc.data();
+                    const docenteId = docenteDoc.id;
+                    
+                    processed++;
+                    
+                    // Si el docente no tiene user_uid, saltar
+                    if (!docente.user_uid) {
+                        skipped++;
+                        results.innerHTML += `<div class="status info">⏭️ Docente ${docente.nombre_completo}: Sin cuenta de usuario (OK)</div>`;
+                        continue;
+                    }
+                    
+                    try {
+                        // Actualizar el usuario con el docente_id
+                        const userRef = doc(db, 'sfd_usuarios', docente.user_uid);
+                        await updateDoc(userRef, {
+                            docente_id: docenteId
+                        });
+                        
+                        updated++;
+                        results.innerHTML += `<div class="status success">✅ ${docente.nombre_completo}: Vinculado correctamente</div>`;
+                    } catch (error) {
+                        errors++;
+                        results.innerHTML += `<div class="status error">❌ ${docente.nombre_completo}: Error - ${error.message}</div>`;
+                    }
+                }
+                
+                // Resumen final
+                results.innerHTML += `
+                    <div class="status success">
+                        <h3>🎉 Migración Completada</h3>
+                        <ul>
+                            <li><strong>Procesados:</strong> ${processed}</li>
+                            <li><strong>Actualizados:</strong> ${updated}</li>
+                            <li><strong>Omitidos:</strong> ${skipped}</li>
+                            <li><strong>Errores:</strong> ${errors}</li>
+                        </ul>
+                    </div>
+                `;
+                
+                btn.textContent = 'Migración Completada';
+                
+            } catch (error) {
+                results.innerHTML += `<div class="status error">❌ Error general: ${error.message}</div>`;
+                btn.disabled = false;
+                btn.textContent = 'Reintentar Migración';
+            }
+        };
+    </script>
+</body>
+</html>
